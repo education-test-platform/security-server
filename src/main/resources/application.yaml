@@ -1,0 +1,24 @@
+server:
+  port: 9292
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/diplom
+    username: root
+    password: pass
+    tomcat:
+      test-while-idle: true
+      validation-query: SELECT 1
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          articles-client:
+            registration:
+              client-id: articles-client
+              client-secret: "321123"
+              client-name: Articles Client
+              client-authentication-methods:
+                - CLIENT_SECRET_BASIC
+              authorization-grant-types:
+                - CLIENT_CREDENTIALS
