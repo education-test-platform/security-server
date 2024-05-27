@@ -3,6 +3,7 @@ package com.mdemydovych.nadiya.security.config;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import com.mdemydovych.nadiya.security.config.properties.SecurityProperties;
+import com.mdemydovych.nadiya.security.model.UserDto;
 import com.mdemydovych.nadiya.security.user.UserService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -17,8 +18,6 @@ import java.util.UUID;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,6 +26,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -35,21 +37,27 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfiguration {
 
   @Bean
-  @Order(Ordered.HIGHEST_PRECEDENCE)
   public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
       throws Exception {
     OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+    http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+        .oidc(withDefaults());
     return http
         .formLogin(withDefaults())
         .build();
   }
 
   @Bean
-  SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-            .requestMatchers(HttpMethod.POST, "/api/user/save").permitAll())
+            .requestMatchers(HttpMethod.POST, "/api/user/save").permitAll()
+            .requestMatchers(HttpMethod.GET, "/registration").permitAll()
+            .anyRequest().authenticated())
         .csrf(AbstractHttpConfigurer::disable)
-        .formLogin(withDefaults());
+        .formLogin(formLoginConfigurer -> {
+          formLoginConfigurer.permitAll();
+          formLoginConfigurer.loginPage("/login");
+        });
     return http.build();
   }
 
@@ -63,6 +71,15 @@ public class SecurityConfiguration {
     return new BCryptPasswordEncoder();
   }
 
+  @Bean
+  public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
+    return context -> {
+      UserDto principal = (UserDto) context.getPrincipal().getPrincipal();
+      context.getClaims().claim("userId", principal.getId());
+      context.getClaims().claim("mail", principal.getEmail());
+      context.getClaims().claim("authorities", principal.getRole());
+    };
+  }
 
   @Bean
   public JWKSource<SecurityContext> jwkSource() throws NoSuchAlgorithmException {

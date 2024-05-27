@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface UserRepository extends JpaRepository<User, UUID> {
+interface UserRepository extends JpaRepository<User, String> {
 
   Optional<User> findByEmail(String email);
 

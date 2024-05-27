@@ -4,7 +4,6 @@ import com.mdemydovych.nadiya.model.user.UserRole;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Data
 public class UserDto implements UserDetails {
 
-  private UUID id;
+  private String id;
 
   private String username;
 

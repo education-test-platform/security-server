@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3307/diplom
     username: root
-    password: pass
+    password: my-secret-pw
     tomcat:
       test-while-idle: true
       validation-query: SELECT 1
@@ -16,9 +16,21 @@ spring:
           articles-client:
             registration:
               client-id: articles-client
-              client-secret: "321123"
+              client-secret: $2a$10$tWTEnqG7lLV/Hkqzlv1qteVvwt8Ur4C./zXrm9545a4LLB7Ciqbqq
               client-name: Articles Client
               client-authentication-methods:
-                - CLIENT_SECRET_BASIC
+                - client_secret_basic
               authorization-grant-types:
-                - CLIENT_CREDENTIALS
+                - authorization_code
+                - refresh_token
+              redirect-uris:
+                - http://localhost:8081/login/oauth2/code/authClient
+              scopes:
+                - openid
+
+
+logging:
+  level:
+    org:
+      hibernate: DEBUG
+      springframework: DEBUG
